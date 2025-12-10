@@ -1,8 +1,9 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { Expense } from './expenses/expense.entity';
 import { ExpensesModule } from './expenses/expenses.module';
+import { Expense } from './expenses/expense.entity';
 
 @Module({
   imports: [
@@ -10,13 +11,16 @@ import { ExpensesModule } from './expenses/expenses.module';
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'postgres',
-        host: process.env.DB_HOST,
-        port: Number(process.env.DB_PORT),
-        username: process.env.DB_USERNAME,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
+        url: process.env.DATABASE_URL, // full postgres://... URL from Supabase
+        // important: tell the pg client to accept the Supabase certificate
+        // in Render's environment. This avoids "self signed certificate" errors.
+        extra: {
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        },
         entities: [Expense],
-        synchronize: true,
+        synchronize: true, // ok for small dev app
       }),
     }),
     ExpensesModule,
